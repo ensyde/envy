@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "envy"
+version = "0.0.2"
+description = "A chat client for init6, through terminal interface."
+authors = ["ensyde <ensyde0@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+colored = "^1.4.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
