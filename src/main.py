@@ -1,6 +1,8 @@
+# import socket as net
 from bot import Bot
 from util.log import log
 from threading import Thread
+from consts import NAME, VER, AUTHOR
 
 
 def connect(bot):
@@ -13,9 +15,9 @@ def connect(bot):
 
 
 def main():
-    log.bot("Envy Bot")
-    log.bot("v0.0.2")
-    log.bot("P$Y/Omen")
+    log.bot(NAME)
+    log.bot(f"ver{VER}")
+    log.bot(AUTHOR)
     bot = Bot()
     print(bot.config.username)
     print(bot.config.port)
@@ -25,10 +27,16 @@ def main():
 def _user_input(bot):
     while True:
         msg = input("")
-        if msg:
+        if msg == "/shitlist":
+            log.bot(bot.config.shitlist)
+        elif msg == "/userlist":
+            for u in bot.channel.userlist:
+                log.bot(u)
+        elif msg == "/ver":
+            log.bot(f"{NAME} :: {VER} :: {AUTHOR}")
+        else:
             bot.send(msg)
 
 
 if __name__ == '__main__':
     main()
-
