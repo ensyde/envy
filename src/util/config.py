@@ -1,4 +1,5 @@
 from configparser import ConfigParser
+from util.log import log
 import os
 
 servers = ["ash.wserv.org", "la.wserv.org", "kc.wserv.org"]
@@ -6,7 +7,7 @@ servers = ["ash.wserv.org", "la.wserv.org", "kc.wserv.org"]
 
 class Config:
     def __init__(self, username, password, host, port, home, trigger,
-                 master, idle, idle_interval
+                 master, idle, idle_interval, topic
                  ):
         self._username = username
         self._password = password
@@ -17,6 +18,7 @@ class Config:
         self._master = master
         self._idle = idle
         self._idle_interval = idle_interval
+        self._topic = topic
         self._access = []
         self._safelist = []
         self._shitlist = []
@@ -28,8 +30,8 @@ class Config:
         self.load_shitlist()
 
     def load_access(self):
-        print("loading access")
-        print(f"Access cwd: {os.getcwd()}")
+        log.bot("loading access")
+        log.debug(f"Access cwd: {os.getcwd()}")
         with open('./config/access', "r") as f:
             self._access = f.read().split()
 
@@ -126,6 +128,10 @@ class Config:
         return self._password
 
     @property
+    def topic(self):
+        return self._topic
+
+    @property
     def host(self):
         return self._host
 
@@ -177,7 +183,8 @@ def load_config(filename):
     m = cfgmain['master']
     idle = cfgmain['idle']
     idleint = int(cfgmain['idle_interval'])
-    return Config(u, pw, h, p, hm, t, m, idle, idleint)
+    tp = cfgmain['topic']
+    return Config(u, pw, h, p, hm, t, m, idle, idleint, tp)
 
 
 if __name__ == '__main__':
