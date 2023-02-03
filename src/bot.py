@@ -2,6 +2,9 @@ import socket
 from util.config import load_config
 from util.log import log
 from objects.channel import Channel
+import time
+from consts import VER, AUTHOR, NAME
+from threading import Thread
 
 PONG = False
 # IN = False
@@ -18,6 +21,12 @@ class Bot:
         self._socket = None
         self.channel = None
         self.is_op = False
+        self._idle = True
+
+    def idle(self):
+        while self._idle:
+            time.sleep(500)
+            self.send(f"/me {NAME} :: v{VER} :: {AUTHOR}")
 
     def connect(self):
         host = self.config.host
@@ -32,6 +41,7 @@ class Bot:
             log.err(f"{e}")
             self._connected = False
         self._socket = s
+        self._idle = Thread(target=self.idle, args=[])
 
     def disconnect(self):
         log.debug("Closing connection")
@@ -95,6 +105,9 @@ class Bot:
                             if (self.has_access(user)) and \
                                     (msg.startswith(self.config.trigger)):
                                 self.cmd_handler(user, msg)
+                            elif (self.has_access(user)) and \
+                                    (msg == "?trigger"):
+                                self.send(f"Trigger: {self.config.trigger}")
                         case "EMOTE":
                             user, *m = rest
                             msg = " ".join([str(_m) for _m in m if _m])
@@ -107,6 +120,9 @@ class Bot:
                             flags, ping, user, stats = rest
                             self.channel.add_user(user)
                             log.join(flags, ping, user, stats)
+                            self.has_op(user, flags)
+                            # if self.is_op:
+                            #    self.check_shitlist(user)
                         case "LEAVE":
                             user = " ".join([str(s) for s in rest if s])
                             self.channel.rem_user(user)
@@ -114,17 +130,21 @@ class Bot:
                         case "IN":
                             flags, ping, user, stats = rest
                             self.channel.add_user(user)
-                            if (user == self.config.username) and \
-                                    (flags == str(18)):
-                                self.is_op = True
-                            log._in(flags, ping, user, stats)
+                            self.has_op(user, flags)
+                            # if (user == self.config.username) and \
+                            #         (flags == str(18)):
+                            #     self.is_op = True
+                            #     self.check_shitlist(user)
+                            # # log._in(flags, ping, user, stats)
                         case "UPDATE":
                             flags, ping, user, stats = rest
                             self.channel.add_user(user)
-                            if (user == self.config.username) and \
-                                    (flags == str(18)):
-                                self.is_op = True
-                            log.update(flags, ping, user, stats)
+                            self.has_op(user, flags)
+                            # if (user == self.config.username) and \
+                            #         (flags == str(18)):
+                            #     self.is_op = True
+                            #     self.check_shitlist(user)
+                            # log.update(flags, ping, user, stats)
                         case _:
                             log.debug("Unknown USER event")
                 elif cmd == "SERVER":
@@ -165,6 +185,13 @@ class Bot:
                         case _:
                             log.debug("Unknown CHANNEL event")
 
+    def has_op(self, name, flags):
+        if (name == self.config.username) and \
+          (flags == str(18)):
+            self.send("I have gained channel ops!")
+            self.is_op = True
+            self.check_shitlist(name)
+
     def has_access(self, name):
         if name == self.config.master:
             return True
@@ -178,42 +205,64 @@ class Bot:
         cmd, *rest = msg.lstrip(self.config.trigger).split()
         cmd = cmd.lower()
         msg = " ".join([str(s) for s in rest if s])
+        if ' ' in msg:
+            msg = msg.split()
+            name = msg.pop(0)
+            has_msg = True
+            msg = " ".join([str(s) for s in msg if s])
+        else:
+            has_msg = False
+            name = msg
         match cmd:
+            case 'help':
+                self.send("Current commands: say, \
+ver, ban, unban, kick, op, designate, join")
             case 'say':
+                if msg.startswith('/'):
+                    msg = msg.lstrip('/')
                 self.send(msg)
             case 'ver' | 'version' | 'about':
-                self.send('EnVy Bot :: v0.0.2 :: P$Y/Omen')
+                self.send(f'{NAME} :: v{VER} :: {AUTHOR}')
             case 'ban' | 'b':
                 if self.is_op:
-                    self.send(f"/ban {msg}")
+                    if not self.check_safelist(name):
+                        self.send(f"/ban {name} {msg if has_msg else ''}")
+                    else:
+                        self.send(f"User {name} is safelisted.")
+
+                    # self.send(f"/ban {msg}")
                 else:
                     self.send("I am not channel operator.")
             case 'unban' | 'ub':
                 if self.is_op:
-                    self.send(f"/unban {msg}")
+                    self.send(f"/unban {name}")
                 else:
                     self.send("I am not channel operator.")
 
             case 'kick' | 'k':
                 if self.is_op:
-                    self.send(f"/kick {msg}")
+                    self.send(f"/kick {name} {msg if has_msg else ''}")
                 else:
                     self.send("I am not channel operator.")
             case 'op':
                 if self.is_op:
-                    self.send(f"/designate {msg}")
+                    self.send(f"/designate {name}")
                     self.send("/resign")
                 else:
                     self.send("I am not channel operator.")
 
             case 'designate':
                 if self.is_op:
-                    self.send(f"/designate {msg}")
+                    self.send(f"/designate {name}")
                 else:
                     self.send("I am not channel operator.")
             case 'join' | 'j':
-                self.send(f"/join {msg}")
+                self.send(f"/join {name}")
+            case 'users':
+                u = ' '.join([str(s) for s in self.config.access if s])
+                self.send(f"Users: {u}")
             case 'home':
+                self.config.set_home(name)
                 self.send(f"Home: {self.config.home}")
             case 'master':
                 self.send(f"Master: {self.config.master}")
@@ -233,3 +282,15 @@ class Bot:
             case 'saferem':
                 self.config.saferem(msg)
                 self.send('User/tag removed from safelist.')
+
+    def check_shitlist(self, user):
+        for shit in self.config.shitlist:
+            if user.find(shit) >= 0:
+                self.send(f"/ban {user} Shitlist")
+                time.sleep(1)
+
+    def check_safelist(self, user):
+        for safe in self.config.safelist:
+            if user.find(safe) >= 0:
+                return True
+        return False
