@@ -1,0 +1,12 @@
+{
+  "main": {
+    "username": "",
+    "password":"",
+    "host":"",
+    "port": 6112,
+    "home":"",
+    "trigger":"",
+    "delay": 0,
+    "topic":"",
+  }
+}
