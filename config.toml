@@ -1,0 +1,26 @@
+[login]
+acct: sex
+pw: fiction
+home: Open Tech Support
+
+[bnet]
+host: atlas.bnetdocs.org
+port: 6112
+game: w2bn
+cdkey:
+xpkey:
+verbyte: 4F
+
+[bnls]
+enabled: false
+host: jbls.davnit.net
+port: 9367
+
+[options]
+trigger: .
+
+[hashes]
+w2bn:
+  - ./hashes/w2bn/Warcraft II BNE.exe
+  - ./hashes/w2bn/storm.dll
+  - ./hashes/w2bn/battle.snp
