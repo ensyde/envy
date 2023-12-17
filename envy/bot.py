@@ -1,10 +1,11 @@
 from config import Config
+from bncs.client import BncsClient
 from time import time
 import logging
 import asyncio
 
 
-log = logging.getClient("bot")
+log = logging.getLogger("bot")
 
 
 class Bot:
@@ -16,7 +17,11 @@ class Bot:
         self.config = Config.load()
         log.debug("Config file loaded.")
 
-    def run(self):
-        pass
+    async def run(self):
+        host = self.config.bncs.host
+        port = self.config.bncs.port
+        bncs = BncsClient(self)
+        await bncs.connect(host, port)
 
     def stop(self):
+        pass

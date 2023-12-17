@@ -1,0 +1,23 @@
+{
+  "login": {
+    "acct": "bot-die-",
+    "pw": "1",
+    "home": "Town Square"
+  },
+  "bncs": {
+    "host": "atlas.bnetdocs.org",
+    "port": 6112,
+    "game": "w2bn",
+    "cdkey": "",
+    "xpkey": "",
+    "verbyte": "4F"
+  },
+  "bnls": {
+    "enabled": true,
+    "host": "jbls.davnit.net",
+    "port": 9367
+  },
+  "options": {
+    "trigger": "."
+  }
+}

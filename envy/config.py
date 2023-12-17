@@ -6,16 +6,36 @@ CFGDIR = "configs/"
 FILENAME = "config.json"
 
 
-class Config:
+class LoginConfig:
     acct: str
     pw: str
     home: str
+
+
+class BncsConfig:
     host: str
     port: int
     game: str
     cdkey: str
     xpkey: str
     verbyte: str
+
+
+class BnlsConfig:
+    enabled: bool
+    host: str
+    port: int
+
+
+class OptsConfig:
+    trigger: str
+
+
+class Config:
+    login: LoginConfig
+    bncs: BncsConfig
+    bnls: BnlsConfig
+    opts: OptsConfig
 
     @staticmethod
     def load(filename: str = FILENAME):
